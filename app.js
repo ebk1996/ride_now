@@ -11,26 +11,76 @@ const App = () => {
   const [rideDetails, setRideDetails] = useState(null);
   const [error, setError] = useState('');
 
-  // Function to handle ride request submission
-  const handleRequestRide = async (e) => {
-    e.preventDefault(); // Prevent default form submission
+// In App.js (React Frontend)
+const handleRequestRide = async (e) => {
+  e.preventDefault();
+  if (!pickupLocation || !destination) {
+    setError('Please enter both pickup location and destination.');
+    return;
+  }
+  setError('');
+  setIsRequesting(true);
+  setDriverFound(false);
+  setRideDetails(null);
 
-    // Basic validation
-    if (!pickupLocation || !destination) {
-      setError('Please enter both pickup location and destination.');
-      return;
+  try {
+    const response = await fetch('http://localhost:5000/api/rides/request', { // Adjust URL if your backend is on a different port/host
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        riderId: '60d5ec49f8c6c50015a9a8b1', // Replace with actual authenticated rider ID
+        pickupLocation,
+        destination,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to request ride');
     }
 
-    setError(''); // Clear any previous errors
-    setIsRequesting(true); // Set requesting state to true
-    setDriverFound(false); // Reset driver found state
-    setRideDetails(null); // Clear previous ride details
+    setRideDetails(data); // Backend will return ride details upon finding a driver
+    setDriverFound(true);
 
-    // Simulate an API call to a backend for ride request
-    // In a real MERN app, this would be a fetch() or axios.post() call to your Express.js backend
-    try {
-      // Simulate network delay for finding a driver
-      await new Promise(resolve => setTimeout(resolve, 3000)); // 3-second delay
+    // Initialize Socket.IO client and join room (in a useEffect or similar)
+    // const socket = io('http://localhost:5000'); // Replace with your backend URL
+    // socket.emit('joinRideRoom', '60d5ec49f8c6c50015a9a8b1'); // Join room for this rider
+    // socket.on('rideUpdate', (update) => {
+    //   console.log('Real-time ride update:', update);
+    //   // Update UI based on real-time updates (e.g., driver location, status changes)
+    // });
+
+  } catch (err) {
+    setError(`Failed to request ride: ${err.message}`);
+    console.error('Ride request error:', err);
+  } finally {
+    setIsRequesting(false);
+  }
+};
+  
+  // // Function to handle ride request submission
+  // const handleRequestRide = async (e) => {
+  //   e.preventDefault(); // Prevent default form submission
+
+  //   // Basic validation
+  //   if (!pickupLocation || !destination) {
+  //     setError('Please enter both pickup location and destination.');
+  //     return;
+  //   }
+
+  //   setError(''); // Clear any previous errors
+  //   setIsRequesting(true); // Set requesting state to true
+  //   setDriverFound(false); // Reset driver found state
+  //   setRideDetails(null); // Clear previous ride details
+
+  //   // Simulate an API call to a backend for ride request
+  //   // In a real MERN app, this would be a fetch() or axios.post() call to your Express.js backend
+  //   try {
+  //     // Simulate network delay for finding a driver
+  //     await new Promise(resolve => setTimeout(resolve, 3000)); // 3-second delay
 
       // Simulate a successful driver match
       const mockRideData = {
